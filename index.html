@@ -1,0 +1,335 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="DevTask — a simple, responsive task management dashboard.">
+<title>DevTask | Task Dashboard</title>
+<style>
+:root {
+  --bg:#f5f7fb; --panel:#fff; --ink:#20283b; --muted:#778197;
+  --line:#e7ebf2; --purple:#6857e8; --green:#16856b;
+}
+* {box-sizing:border-box}
+body {margin:0;font-family:Inter,Segoe UI,Arial,sans-serif;background:var(--bg);color:var(--ink)}
+button,input,select,textarea {font:inherit}
+button {cursor:pointer}
+.layout {min-height:100vh;display:grid;grid-template-columns:230px minmax(0,1fr)}
+aside {background:#20243a;color:#fff;padding:28px 18px}
+.brand {font-size:25px;font-weight:800;letter-spacing:-1px;padding:0 12px 35px}
+.brand span {color:#a89cff}
+.nav-label {font-size:11px;color:#929ab4;letter-spacing:1.5px;padding:0 12px;margin-bottom:12px}
+.nav-item {padding:12px;border-radius:9px;color:#c6cce0;margin-bottom:6px;font-size:14px}
+.nav-item.active {background:#393653;color:#fff}
+.side-note {margin:45px 8px 0;padding:15px;background:#2b3049;border-radius:12px;color:#c9cee0;font-size:12px;line-height:1.7}
+main {padding:32px clamp(18px,4vw,48px);min-width:0}
+.topbar {display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:30px}
+h1 {font-size:28px;margin:0 0 7px;letter-spacing:-1px}
+.subtitle {font-size:13px;color:var(--muted)}
+.avatar {width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:#e5e1ff;color:#5543c4;font-weight:800}
+.button {border:0;background:var(--purple);color:white;padding:12px 17px;border-radius:9px;font-weight:650}
+.button:hover {filter:brightness(.95)}
+.stats {display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px;margin-bottom:27px}
+.card {background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.stat-label {font-size:13px;color:var(--muted)}
+.stat-value {font-size:30px;font-weight:750;margin:14px 0 7px;letter-spacing:-1px}
+.stat-foot {font-size:12px;color:var(--muted)}
+.section-head {display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+h2 {font-size:18px;margin:0}
+.tools {display:flex;gap:10px;flex-wrap:wrap;margin-bottom:16px}
+input,select,textarea {border:1px solid var(--line);background:#fff;color:var(--ink);padding:11px 12px;border-radius:8px;min-width:0}
+#search {flex:1;min-width:150px}
+select {max-width:100%}
+.task-list {display:grid;gap:11px}
+.task {display:flex;align-items:center;gap:13px;padding:16px;background:white;border:1px solid var(--line);border-radius:11px}
+.task-check {width:18px;height:18px;accent-color:var(--purple);flex-shrink:0}
+.task-main {flex:1;min-width:0}
+.task-title {font-size:14px;font-weight:650;overflow-wrap:anywhere}
+.task.done .task-title {text-decoration:line-through;color:var(--muted)}
+.task-meta {font-size:12px;color:var(--muted);margin-top:6px}
+.pill {font-size:11px;padding:6px 9px;border-radius:20px;white-space:nowrap}
+.priority-High {background:#fff0ef;color:#cf5049}
+.priority-Medium {background:#fff5df;color:#a56a09}
+.priority-Low {background:#e7f7f0;color:#16856b}
+.status {background:#eeedff;color:#6250c9}
+.delete {border:0;background:transparent;color:#9aa2b4;font-size:20px;padding:4px 7px}
+.delete:hover {color:#cf5049}
+.empty {text-align:center;padding:35px;color:var(--muted);background:#fff;border:1px dashed #d6dce8;border-radius:12px}
+.lower {display:grid;grid-template-columns:1.2fr 1fr;gap:18px;margin-top:22px}
+.progress-row {margin-top:20px}
+.progress-label {display:flex;justify-content:space-between;font-size:13px;margin-bottom:9px}
+.track {height:8px;border-radius:8px;background:#edf0f6;overflow:hidden}
+.bar {height:100%;background:var(--purple);border-radius:8px;transition:width .2s}
+.activity-item {font-size:13px;color:var(--muted);padding:12px 0;border-bottom:1px solid var(--line);line-height:1.5}
+.activity-item:last-child {border:0}
+dialog {border:0;border-radius:16px;padding:25px;width:min(460px,calc(100% - 28px));box-shadow:0 20px 70px #18203a40}
+dialog::backdrop {background:#171b2c88}
+dialog h2 {margin-bottom:20px}
+.form-grid {display:grid;gap:14px}
+.form-grid label {font-size:12px;color:var(--muted);display:grid;gap:7px}
+.form-grid input,.form-grid select,.form-grid textarea {width:100%}
+.form-actions {display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+.secondary {background:#f0f1f6;color:var(--ink);border:0;border-radius:9px;padding:11px 15px}
+@media(max-width:950px) {
+ .layout {grid-template-columns:75px minmax(0,1fr)}
+ aside {padding:25px 9px}
+ .brand {font-size:0;text-align:center;padding:0 0 35px}
+ .brand:first-letter {font-size:24px}
+ .nav-label,.nav-text,.side-note {display:none}
+ .nav-item {text-align:center;font-size:19px;padding:13px 5px}
+ .stats {grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:620px) {
+ main {padding:22px 14px}
+ .topbar {align-items:flex-start}
+ .topbar .button {padding:10px;font-size:12px}
+ h1 {font-size:24px}
+ .stats {gap:9px}
+ .card {padding:15px}
+ .stat-value {font-size:25px}
+ .lower {grid-template-columns:1fr}
+ .task {gap:9px;padding:12px}
+ .pill.status {display:none}
+}
+</style>
+</head>
+<body>
+<div class="layout">
+<aside>
+  <div class="brand">Dev<span>Task</span></div>
+  <div class="nav-label">WORKSPACE</div>
+  <div class="nav-item active">▦ <span class="nav-text"> Dashboard</span></div>
+  <div class="nav-item">✓ <span class="nav-text"> My Tasks</span></div>
+  <div class="nav-item">▤ <span class="nav-text"> Reports</span></div>
+  <div class="side-note">Stay focused.<br>Small steps make big progress.</div>
+</aside>
+<main>
+  <header class="topbar">
+    <div>
+      <h1>My Dashboard</h1>
+      <div class="subtitle" id="today">Your work, all in one place.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="avatar">D</div>
+      <button class="button" id="open-modal">＋ New task</button>
+    </div>
+  </header>
+
+  <section class="stats">
+    <div class="card"><div class="stat-label">Total tasks</div><div class="stat-value" id="total">0</div><div class="stat-foot">Tasks in your workspace</div></div>
+    <div class="card"><div class="stat-label">Completed</div><div class="stat-value" id="completed">0</div><div class="stat-foot">Successfully finished</div></div>
+    <div class="card"><div class="stat-label">In progress</div><div class="stat-value" id="progress-count">0</div><div class="stat-foot">Currently being worked on</div></div>
+    <div class="card"><div class="stat-label">Overdue</div><div class="stat-value" id="overdue">0</div><div class="stat-foot">Past-due unfinished tasks</div></div>
+  </section>
+
+  <section class="card">
+    <div class="section-head"><h2>My tasks</h2><span class="subtitle" id="task-summary">0 tasks</span></div>
+    <div class="tools">
+      <input id="search" type="search" placeholder="Search tasks..." aria-label="Search tasks">
+      <select id="filter-status" aria-label="Filter by status">
+        <option value="All">All statuses</option>
+        <option value="Todo">To do</option>
+        <option value="In Progress">In progress</option>
+        <option value="Completed">Completed</option>
+      </select>
+      <select id="filter-priority" aria-label="Filter by priority">
+        <option value="All">All priorities</option>
+        <option value="High">High priority</option>
+        <option value="Medium">Medium priority</option>
+        <option value="Low">Low priority</option>
+      </select>
+    </div>
+    <div class="task-list" id="task-list"></div>
+  </section>
+
+  <section class="lower">
+    <div class="card">
+      <h2>Completion progress</h2>
+      <div class="progress-row">
+        <div class="progress-label"><span>Overall completion</span><strong id="progress-label">0%</strong></div>
+        <div class="track"><div class="bar" id="progress-bar" style="width:0%"></div></div>
+      </div>
+      <p class="subtitle" id="progress-message" style="margin-top:17px">Add a task to get started.</p>
+    </div>
+    <div class="card">
+      <h2>Quick tips</h2>
+      <div class="activity-item">🎯 Break large projects into smaller tasks.</div>
+      <div class="activity-item">📅 Set realistic due dates.</div>
+      <div class="activity-item">✅ Mark tasks complete as you finish them.</div>
+    </div>
+  </section>
+</main>
+</div>
+
+<dialog id="task-dialog">
+  <form id="task-form">
+    <h2 id="dialog-title">Create a task</h2>
+    <div class="form-grid">
+      <label>Task title<input id="task-title" required maxlength="100" placeholder="e.g. Finish portfolio README"></label>
+      <label>Description<textarea id="task-description" rows="2" maxlength="250" placeholder="What needs to be done?"></textarea></label>
+      <label>Due date<input id="task-date" type="date"></label>
+      <label>Priority<select id="task-priority"><option>Medium</option><option>High</option><option>Low</option></select></label>
+      <label>Status<select id="task-status"><option>Todo</option><option>In Progress</option><option>Completed</option></select></label>
+    </div>
+    <div class="form-actions">
+      <button type="button" class="secondary" id="cancel-modal">Cancel</button>
+      <button type="submit" class="button">Save task</button>
+    </div>
+  </form>
+</dialog>
+
+<script>
+const STORAGE_KEY = "devtask-dashboard-v1";
+const starterTasks = [
+  {id:1,title:"Complete portfolio README",description:"Document projects and setup instructions.",date:"",priority:"High",status:"In Progress"},
+  {id:2,title:"Build ShopVerse storefront",description:"Create product cards and shopping interactions.",date:"",priority:"Medium",status:"Completed"},
+  {id:3,title:"Practice JavaScript",description:"Review arrays, events, and DOM manipulation.",date:"",priority:"Low",status:"Todo"}
+];
+let tasks = loadTasks();
+let editingId = null;
+
+function loadTasks() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    return saved === null ? starterTasks.map(task => ({...task})) : JSON.parse(saved);
+  } catch {
+    return starterTasks.map(task => ({...task}));
+  }
+}
+function saveTasks() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+  } catch {
+    alert("Your browser could not save changes. Check your browser storage settings.");
+  }
+}
+function escapeHTML(value) {
+  return String(value).replace(/[&<>"']/g, char => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  })[char]);
+}
+function isOverdue(task) {
+  return task.date && task.status !== "Completed" &&
+    task.date < new Date().toLocaleDateString("en-CA");
+}
+function render() {
+  const completed = tasks.filter(task => task.status === "Completed").length;
+  const inProgress = tasks.filter(task => task.status === "In Progress").length;
+  const overdue = tasks.filter(isOverdue).length;
+  const percent = tasks.length ? Math.round(completed / tasks.length * 100) : 0;
+
+  document.getElementById("total").textContent = tasks.length;
+  document.getElementById("completed").textContent = completed;
+  document.getElementById("progress-count").textContent = inProgress;
+  document.getElementById("overdue").textContent = overdue;
+  document.getElementById("progress-label").textContent = percent + "%";
+  document.getElementById("progress-bar").style.width = percent + "%";
+  document.getElementById("progress-message").textContent =
+    tasks.length ? `${completed} of ${tasks.length} tasks completed.` : "Add a task to get started.";
+  document.getElementById("task-summary").textContent = `${tasks.length} tasks total`;
+
+  const query = document.getElementById("search").value.toLowerCase().trim();
+  const status = document.getElementById("filter-status").value;
+  const priority = document.getElementById("filter-priority").value;
+  const filtered = tasks.filter(task =>
+    (task.title + " " + task.description).toLowerCase().includes(query) &&
+    (status === "All" || task.status === status) &&
+    (priority === "All" || task.priority === priority)
+  );
+
+  const list = document.getElementById("task-list");
+  if (!filtered.length) {
+    list.innerHTML = '<div class="empty">No matching tasks. Add a task or change your filters.</div>';
+    return;
+  }
+
+  list.innerHTML = filtered.map(task => `
+    <article class="task ${task.status === "Completed" ? "done" : ""}">
+      <input class="task-check" type="checkbox" data-complete="${task.id}"
+        aria-label="Mark ${escapeHTML(task.title)} completed"
+        ${task.status === "Completed" ? "checked" : ""}>
+      <div class="task-main">
+        <div class="task-title">${escapeHTML(task.title)}</div>
+        <div class="task-meta">${escapeHTML(task.description || "No description")}
+          ${task.date ? " · Due " + escapeHTML(task.date) : ""}
+          ${isOverdue(task) ? " · OVERDUE" : ""}
+        </div>
+      </div>
+      <span class="pill priority-${task.priority}">${task.priority}</span>
+      <span class="pill status">${escapeHTML(task.status)}</span>
+      <button class="delete" data-edit="${task.id}" aria-label="Edit task">✎</button>
+      <button class="delete" data-delete="${task.id}" aria-label="Delete task">×</button>
+    </article>
+  `).join("");
+}
+
+const dialog = document.getElementById("task-dialog");
+const form = document.getElementById("task-form");
+function openDialog(task = null) {
+  editingId = task ? task.id : null;
+  form.reset();
+  document.getElementById("dialog-title").textContent = task ? "Edit task" : "Create a task";
+  document.getElementById("task-title").value = task ? task.title : "";
+  document.getElementById("task-description").value = task ? task.description : "";
+  document.getElementById("task-date").value = task ? task.date : "";
+  document.getElementById("task-priority").value = task ? task.priority : "Medium";
+  document.getElementById("task-status").value = task ? task.status : "Todo";
+  dialog.showModal();
+  document.getElementById("task-title").focus();
+}
+document.getElementById("open-modal").addEventListener("click", () => openDialog());
+document.getElementById("cancel-modal").addEventListener("click", () => dialog.close());
+form.addEventListener("submit", event => {
+  event.preventDefault();
+  const data = {
+    title:document.getElementById("task-title").value.trim(),
+    description:document.getElementById("task-description").value.trim(),
+    date:document.getElementById("task-date").value,
+    priority:document.getElementById("task-priority").value,
+    status:document.getElementById("task-status").value
+  };
+  if (!data.title) return;
+  if (editingId !== null) {
+    tasks = tasks.map(task => task.id === editingId ? {...task,...data} : task);
+  } else {
+    tasks.unshift({id:Date.now(),...data});
+  }
+  saveTasks();
+  dialog.close();
+  render();
+});
+document.getElementById("task-list").addEventListener("change", event => {
+  const id = Number(event.target.dataset.complete);
+  if (!id) return;
+  tasks = tasks.map(task => task.id === id
+    ? {...task,status:event.target.checked ? "Completed" : "Todo"} : task);
+  saveTasks();
+  render();
+});
+document.getElementById("task-list").addEventListener("click", event => {
+  const editButton = event.target.closest("[data-edit]");
+  const deleteButton = event.target.closest("[data-delete]");
+  if (editButton) {
+    const task = tasks.find(item => item.id === Number(editButton.dataset.edit));
+    if (task) openDialog(task);
+  }
+  if (deleteButton) {
+    const id = Number(deleteButton.dataset.delete);
+    const task = tasks.find(item => item.id === id);
+    if (task && confirm(`Delete "${task.title}"?`)) {
+      tasks = tasks.filter(item => item.id !== id);
+      saveTasks();
+      render();
+    }
+  }
+});
+["search","filter-status","filter-priority"].forEach(id =>
+  document.getElementById(id).addEventListener(id === "search" ? "input" : "change", render)
+);
+document.getElementById("today").textContent =
+  new Intl.DateTimeFormat("en", {weekday:"long",month:"long",day:"numeric",year:"numeric"}).format(new Date());
+render();
+</script>
+</body>
+</html>
